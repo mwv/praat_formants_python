@@ -1,6 +1,6 @@
 #+AUTHOR: Maarten Versteegh
 * Praat Formants Python
-Reading formants from audio files into Python by wrapping calls to [[http://www.fon.hum.uva.nl/praat/][Praat]]. To reduce overhead, calls to Praat are memoized. This can be disabled by setting `memoize_call=False` in the function parameters.
+Reading formants from audio files into Python by wrapping calls to [[http://www.fon.hum.uva.nl/praat/][Praat]]. To reduce overhead, calls to Praat are memoized. This can be disabled by setting ~memoize_call=False~ in the function parameters.
 
 ** Usage
 Extract formants at time point 0.5s from wavfile:
@@ -11,7 +11,7 @@ Extract formants at time interval [0.5, 0.7] from wavfile:
 : import praat_formants_python as pfp
 : pfp.formants_at_interval('/path/to/wavfile/', 0.5, 0.7)
 
-Maximum formant, window length and preemphasis can be passed in as keyword arguments. By default, these are set as `maxformant=5500`, `winlen=0.025`, `preemph=50`
+Maximum formant, window length and preemphasis can be passed in as keyword arguments. By default, these are set as ~maxformant=5500~, ~winlen=0.025~, ~preemph=50~
 : import praat_formants_python as pfp
 : pfp.formants_at_interval('/path/to/wavfile/', 0.5, 0.7,
 :                          maxformant=5000, winlen=0.50, preemph=99)
@@ -19,9 +19,9 @@ Maximum formant, window length and preemphasis can be passed in as keyword argum
 ** Installation
 This package requires [[http://www.numpy.org][numpy]]. See installation instructions there.
 
-Run `setup.py`:
+Run ~setup.py~:
 : python setup.py install
 
-To be able to find Praat, the `praat` executable should be in your PATH. For OSX: the Praat program installs to /Applications/Audio/Praat.app/Contents/MacOS/Praat, which is not in the PATH by default. Easiest way to solve that is to put a symlink in /usr/bin to there, i.e. open a Terminal and do
+To be able to find Praat, the ~praat~ executable should be in your ~PATH~. For OSX: the Praat program installs to ~/Applications/Audio/Praat.app/Contents/MacOS/Praat~, which is not in the ~PATH~ by default. Easiest way to solve that is to put a symlink in /usr/bin to there, i.e. open a Terminal and do
 : $ sudo ln -s /Applications/Audio/Praat.app/Contents/MacOS/Praat /usr/bin/praat
-For Linux: Praat installs to /usr/bin by default, so you don't have to do anything.
+For Linux: Praat installs to ~/usr/bin~ by default, so you don't have to do anything.
