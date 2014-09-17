@@ -24,7 +24,7 @@ test_requirements = [
 
 setup(
     name='praat_formants_python',
-    version='0.1.0',
+    version='0.1.1',
     description='Extract formants from audio files using praat and python',
     long_description=readme + '\n\n' + history,
     author='Maarten Versteegh',

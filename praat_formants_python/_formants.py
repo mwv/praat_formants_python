@@ -20,8 +20,28 @@ from __future__ import division
 from subprocess import Popen, PIPE
 import warnings
 from bisect import bisect_left, bisect_right
+import tempfile
 
 import numpy as np
+
+_script_loc = None
+def make_script():
+    global _script_loc
+    if _script_loc is None:
+        _script_loc = tempfile.mktemp(suffix='.praat')
+        with open(_script_loc, 'w') as fid:
+            fid.write("""# take name of wav file from stdin and dump formant table to stdout
+form File
+sentence filename
+positive maxformant 5500
+real winlen 0.025
+positive preemph 50
+endform
+Read from file... 'filename$'
+To Formant (burg)... 0.01 5 'maxformant' 'winlen' 'preemph'
+List... no yes 6 no 3 no 3 no
+exit""")
+    return _script_loc
 
 
 class PraatError(Exception):
@@ -73,13 +93,13 @@ def file2formants(filename, maxformant=5500, winlen=0.025, preemph=50,
     if memoize_call:
         key = (filename, maxformant, winlen, preemph)
         if not key in _fmt_cache:
-            res = run_praat('extract_formants.praat',
+            res = run_praat(make_script(),
                             filename, maxformant, winlen, preemph)
             _fmt_cache[key] = np.array(map(lambda x: map(_float, x.rstrip().split('\t')[:4]),
                                res.split('\n')[1:-1]))
         return _fmt_cache[key]
     else:
-        res = run_praat('extract_formants.praat',
+        res = run_praat(make_script(),
                         filename, maxformant, winlen, preemph)
         return np.array(map(lambda x: map(_float, x.rstrip().split('\t')[:4]),
                         res.split('\n')[1:-1]))
