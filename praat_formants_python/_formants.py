@@ -15,12 +15,11 @@
 
 """
 
-from __future__ import division
 
-from subprocess import Popen, PIPE
 import warnings
 from bisect import bisect_left, bisect_right
 import tempfile
+import subprocess
 
 import numpy as np
 
@@ -54,15 +53,16 @@ def run_praat(*args):
     Arguments:
     :param *args: command line arguments to pass to praat.
     """
-    p = Popen(['praat'] + map(str, list(args)),
-              shell=False,
-              stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p.communicate()
+    p = subprocess.run(['praat'] + ['--run'] + list(map(str, list(args))), shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, universal_newlines=True)
+    # p = Popen(['praat'] + list(map(str, list(args))),
+    #           shell=False,
+    #           stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    # stdout, stderr = p.communicate()
 
     if p.returncode:
-        raise PraatError(''.join(stderr.readlines()))
+        raise PraatError(''.join(p.stderr.readlines()))
     else:
-        return stdout
+        return p.stdout
 
 
 _fmt_cache = {}
@@ -95,14 +95,12 @@ def file2formants(filename, maxformant=5500, winlen=0.025, preemph=50,
         if not key in _fmt_cache:
             res = run_praat(make_script(),
                             filename, maxformant, winlen, preemph)
-            _fmt_cache[key] = np.array(map(lambda x: map(_float, x.rstrip().split('\t')[:4]),
-                               res.split('\n')[1:-1]))
+            _fmt_cache[key] = np.array([list(map(_float, x.rstrip().split('\t')[:4])) for x in res.split('\n')[1:-1]])
         return _fmt_cache[key]
     else:
         res = run_praat(make_script(),
                         filename, maxformant, winlen, preemph)
-        return np.array(map(lambda x: map(_float, x.rstrip().split('\t')[:4]),
-                        res.split('\n')[1:-1]))
+        return np.array([list(map(_float, x.rstrip().split('\t')[:4])) for x in res.split('\n')[1:-1]])
 
 
 def clear_formant_cache():
@@ -125,13 +123,13 @@ def formants_at_time(filename, time, **kwargs):
     try:
         res = formants_array[bisect_left(formants_array[:, 0], time), 1:]
     except IndexError:
-        raise ValueError, 'time out of range for filelength'
+        raise ValueError('time out of range for filelength')
     if np.any(np.isnan(res)):
         warnings.warn('undefined formant found')
     return res
 
 
-def formants_at_interval(filename, start, end, **kwargs):
+def formants_at_interval(filename, start=None, end=None, **kwargs):
     """Extract formants in audio file between start and end times. Returns a
     2-d array.
 
@@ -144,11 +142,11 @@ def formants_at_interval(filename, start, end, **kwargs):
     """
     formants_array = file2formants(filename, **kwargs)
     try:
-        start_idx = bisect_left(formants_array[:, 0], start)
-        end_idx = bisect_right(formants_array[:, 0], end)
+        start_idx = 0 if start is None else bisect_left(formants_array[:, 0], start)
+        end_idx = -1 if end is None else bisect_right(formants_array[:, 0], end)
         res = formants_array[start_idx: end_idx]
     except IndexError:
-        raise ValueError, 'time out of range for filelength'
+        raise ValueError('time out of range for filelength')
     if np.any(np.isnan(res)):
         warnings.warn('undefined formant found')
     return res
